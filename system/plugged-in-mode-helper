@@ -3,12 +3,55 @@ set -eu
 
 START=/sys/class/power_supply/BAT1/charge_control_start_threshold
 END=/sys/class/power_supply/BAT1/charge_control_end_threshold
+STATE_DIR=/var/lib/plugged-in-mode
+STATE_FILE=$STATE_DIR/profile
 
-[ -e "$START" ] || exit 1
-[ -e "$END" ] || exit 1
+apply_thresholds() {
+    [ -e "$START" ] || exit 1
+    [ -e "$END" ] || exit 1
 
-printf '50\n' > "$START"
-printf '60\n' > "$END"
+    printf '50\n' > "$START"
+    printf '60\n' > "$END"
 
-[ "$(cat "$START")" = "50" ] || exit 1
-[ "$(cat "$END")" = "60" ] || exit 1
+    [ "$(cat "$START")" = "50" ] || exit 1
+    [ "$(cat "$END")" = "60" ] || exit 1
+}
+
+wait_for_thresholds() {
+    count=0
+
+    while [ "$count" -lt 20 ]; do
+        if [ -e "$START" ] && [ -e "$END" ]; then
+            return 0
+        fi
+
+        count=$((count + 1))
+        sleep 0.5
+    done
+
+    return 1
+}
+
+case "${1:-enable}" in
+    enable)
+        apply_thresholds
+        mkdir -p "$STATE_DIR"
+        printf 'plugged\n' > "$STATE_FILE"
+        ;;
+
+    disable)
+        rm -f "$STATE_FILE"
+        ;;
+
+    restore)
+        [ -f "$STATE_FILE" ] || exit 0
+        [ "$(cat "$STATE_FILE")" = "plugged" ] || exit 0
+
+        wait_for_thresholds
+        apply_thresholds
+        ;;
+
+    *)
+        exit 2
+        ;;
+esac

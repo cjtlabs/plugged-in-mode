@@ -154,6 +154,15 @@ const PluggedInToggle = GObject.registerClass(
       );
     }
 
+    async _runHelper(command) {
+      const proc = Gio.Subprocess.new(
+        ["pkexec", "/usr/local/libexec/plugged-in-mode-helper", command],
+        Gio.SubprocessFlags.NONE,
+      );
+
+      await proc.wait_check_async(null);
+    }
+
     _getBatteryFillLevel() {
       const percentage = this._readNumber(BATTERY_CAPACITY);
 
@@ -465,7 +474,20 @@ const PluggedInToggle = GObject.registerClass(
       const current = this._detectSystemProfile();
 
       if (current === PROFILE_PLUGGED) {
-        this._syncFromSystem();
+        try {
+          this._changing = true;
+
+          await this._runHelper("enable");
+
+          this._syncFromSystem();
+        } catch (e) {
+          console.error(`Plugged-in enable failed: ${e.message}`);
+
+          this._syncFromSystem();
+        } finally {
+          this._changing = false;
+        }
+
         return;
       }
 
@@ -483,12 +505,7 @@ const PluggedInToggle = GObject.registerClass(
 
         await this._proxy.EnableChargeThresholdAsync(true);
 
-        const proc = Gio.Subprocess.new(
-          ["pkexec", "/usr/local/libexec/plugged-in-mode-helper"],
-          Gio.SubprocessFlags.NONE,
-        );
-
-        await proc.wait_check_async(null);
+        await this._runHelper("enable");
 
         this._syncFromSystem();
 
@@ -533,6 +550,8 @@ const PluggedInToggle = GObject.registerClass(
           await this._proxy.EnableChargeThresholdAsync(false);
         }
 
+        await this._runHelper("disable");
+
         this._previousNativeProfile = null;
 
         this._syncFromSystem();
@@ -561,6 +580,8 @@ const PluggedInToggle = GObject.registerClass(
         } else {
           await this._proxy.EnableChargeThresholdAsync(false);
         }
+
+        await this._runHelper("disable");
 
         this._previousNativeProfile = null;
 

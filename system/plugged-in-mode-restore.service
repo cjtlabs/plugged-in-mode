@@ -1,0 +1,11 @@
+[Unit]
+Description=Restore Plugged-in Mode battery thresholds
+Wants=upower.service
+After=systemd-modules-load.service upower.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/plugged-in-mode-helper restore
+
+[Install]
+WantedBy=multi-user.target
