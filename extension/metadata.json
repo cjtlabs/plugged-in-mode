@@ -1,0 +1,7 @@
+{
+  "uuid": "plugged-in-mode@cjtlabs.github.io",
+  "name": "Plugged-in Mode",
+  "description": "Adds battery charge profiles to GNOME Quick Settings",
+  "shell-version": ["50"],
+  "version": 1
+}

@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+START=/sys/class/power_supply/BAT1/charge_control_start_threshold
+END=/sys/class/power_supply/BAT1/charge_control_end_threshold
+
+[ -e "$START" ] || exit 1
+[ -e "$END" ] || exit 1
+
+printf '50\n' > "$START"
+printf '60\n' > "$END"
+
+[ "$(cat "$START")" = "50" ] || exit 1
+[ "$(cat "$END")" = "60" ] || exit 1

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+
+<policyconfig>
+  <vendor>cjtlabs</vendor>
+  <vendor_url>https://github.com/cjtlabs/plugged-in-mode</vendor_url>
+
+  <action id="com.cjtlabs.plugged-in-mode.set-50-60">
+    <description>Enable Plugged-in Mode</description>
+    <message>Authentication is required to change the battery charge limit</message>
+
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/local/libexec/plugged-in-mode-helper</annotate>
+  </action>
+</policyconfig>
